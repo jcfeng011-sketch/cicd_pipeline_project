@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git url: 'repo_url',
+                branch: 'main',
+                credentialsId: 'credential_id'
+            }
+        }
+        stage('Build') { 
+            steps {
+                sh 'chmod +x build.sh'  // Make build.sh executable
+                sh './build.sh'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'chmod +x test.sh'  // Make test.sh executable
+                sh './test.sh'
+                withCredentials(
+                    [string(credentialsId: 'webex_var_name', variable: 'WEBEX_TOKEN')],
+                ) sh '''
+                    python3 notifications.py
+                    '''
+            }
+        }
+    }
+}
